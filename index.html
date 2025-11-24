@@ -185,43 +185,41 @@
             border-color: rgba(139, 95, 191, 0.5);
         }
 
-        .user-avatar-container {
-            position: relative;
-            width: 40px;
-            height: 40px;
-        }
+.user-avatar-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    padding: 2px;
+}
 
-        .user-avatar {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid transparent;
-            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)) border-box;
-            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            transition: all 0.3s ease;
-        }
+.user-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--color-dark);
+}
 
-        .user-avatar-container::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-            border-radius: 50%;
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+.user-avatar-container::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
 
-        .user-profile:hover .user-avatar-container::after {
-            opacity: 1;
-            animation: avatarGlow 2s ease-in-out infinite;
-        }
+.user-profile:hover .user-avatar-container::after {
+    opacity: 1;
+    animation: avatarGlow 2s ease-in-out infinite;
+}
 
         .user-info {
             display: flex;
@@ -1649,21 +1647,26 @@
         }
 
         // Показать профиль пользователя
-        function showUserProfile(user) {
-            loginBtn.style.display = 'none';
-            userProfile.style.display = 'flex';
-            
-            // Исправление для аватара
-            if (user.avatar) {
-                userAvatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`;
-            } else {
-                // Используем дефолтный аватар Discord
-                const defaultAvatarNumber = parseInt(user.discriminator) % 5;
-                userAvatar.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNumber}.png`;
-            }
-            
-            userName.textContent = user.username;
-        }
+function showUserProfile(user) {
+    loginBtn.style.display = 'none';
+    userProfile.style.display = 'flex';
+    
+    // Исправление для аватара
+    if (user.avatar) {
+        userAvatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`;
+        userAvatar.onerror = function() {
+            // Если аватар не загрузился, используем дефолтный
+            const defaultAvatarNumber = parseInt(user.discriminator) % 5;
+            this.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNumber}.png`;
+        };
+    } else {
+        // Используем дефолтный аватар Discord
+        const defaultAvatarNumber = parseInt(user.discriminator) % 5;
+        userAvatar.src = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarNumber}.png`;
+    }
+    
+    userName.textContent = user.username;
+}
 
         // Показать кнопку входа
         function showLoginButton() {

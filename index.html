@@ -1367,7 +1367,7 @@
             });
         });
 
-        // ========== КОД ДЛЯ АВТОРИЗАЦИИ ==========
+        // ========== ИСПРАВЛЕННЫЙ КОД ДЛЯ АВТОРИЗАЦИИ ==========
         
         // Элементы DOM для авторизации
         const authModal = document.getElementById('auth-modal');
@@ -1381,17 +1381,17 @@
 
         // Конфигурация OAuth2 Discord
         const DISCORD_CLIENT_ID = '1307965035666079785';
-        // Используем текущий URL как redirect URI
-        const DISCORD_REDIRECT_URI = window.location.origin + window.location.pathname;
+        // Для GitHub Pages используем текущий URL
+        const DISCORD_REDIRECT_URI = window.location.href.split('#')[0];
         const DISCORD_SCOPE = 'identify';
 
-        // URL для авторизации через Discord (Implicit Flow)
+        // URL для авторизации через Discord
         const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=token&scope=${DISCORD_SCOPE}`;
 
         // Проверка статуса авторизации при загрузке страницы
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
-            checkForToken(); // Проверяем наличие токена в URL
+            checkForToken();
         });
 
         // Открытие модального окна авторизации
@@ -1413,7 +1413,7 @@
 
         // Авторизация через Discord
         discordLoginBtn.addEventListener('click', () => {
-            // Перенаправление на страницу авторизации Discord
+            console.log('Redirect URI:', DISCORD_REDIRECT_URI);
             window.location.href = discordAuthUrl;
         });
 
@@ -1422,20 +1422,24 @@
             localStorage.removeItem('discord_user');
             localStorage.removeItem('discord_token');
             checkAuthStatus();
-            // Перезагружаем страницу чтобы убрать возможные артефакты
-            window.location.href = window.location.origin + window.location.pathname;
+            window.location.reload();
         });
 
         // Проверка токена в URL после возврата с Discord
         function checkForToken() {
             const hash = window.location.hash;
+            console.log('URL Hash:', hash);
+            
             if (hash && hash.includes('access_token')) {
-                const token = hash.split('&')[0].split('=')[1];
-                console.log('Токен получен:', token);
-                getUserData(token);
-                
-                // Убираем токен из URL
-                window.history.replaceState({}, document.title, window.location.pathname);
+                const tokenMatch = hash.match(/access_token=([^&]+)/);
+                if (tokenMatch) {
+                    const token = tokenMatch[1];
+                    console.log('Токен получен');
+                    getUserData(token);
+                    
+                    // Убираем токен из URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
             }
         }
 
@@ -1451,19 +1455,18 @@
                 
                 if (response.ok) {
                     const user = await response.json();
-                    console.log('Данные пользователя:', user);
+                    console.log('Данные пользователя получены:', user);
                     localStorage.setItem('discord_user', JSON.stringify(user));
                     localStorage.setItem('discord_token', token);
                     checkAuthStatus();
                     
-                    // Показываем уведомление об успешной авторизации
                     showNotification(`Добро пожаловать, ${user.username}!`);
                 } else {
-                    console.error('Ошибка получения данных пользователя:', response.status);
+                    console.error('Ошибка получения данных:', response.status);
                     showNotification('Ошибка авторизации. Попробуйте снова.');
                 }
             } catch (error) {
-                console.error('Ошибка получения данных пользователя:', error);
+                console.error('Ошибка:', error);
                 showNotification('Ошибка соединения. Попробуйте снова.');
             }
         }
@@ -1473,12 +1476,10 @@
             const userData = localStorage.getItem('discord_user');
             
             if (userData) {
-                // Пользователь авторизован
                 const user = JSON.parse(userData);
                 console.log('Пользователь авторизован:', user);
                 showUserProfile(user);
             } else {
-                // Пользователь не авторизован
                 console.log('Пользователь не авторизован');
                 showLoginButton();
             }
@@ -1489,29 +1490,23 @@
             loginBtn.style.display = 'none';
             userProfile.style.display = 'flex';
             
-            // Устанавливаем аватар
             if (user.avatar) {
                 userAvatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`;
             } else {
                 userAvatar.src = 'https://cdn.discordapp.com/embed/avatars/0.png';
             }
             
-            // Устанавливаем имя пользователя
             userName.textContent = user.username;
-            
-            console.log('Профиль пользователя отображен');
         }
 
         // Показать кнопку входа
         function showLoginButton() {
             loginBtn.style.display = 'block';
             userProfile.style.display = 'none';
-            console.log('Кнопка входа отображена');
         }
 
         // Функция для показа уведомлений
         function showNotification(message) {
-            // Создаем элемент уведомления
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
@@ -1530,11 +1525,12 @@
             
             document.body.appendChild(notification);
             
-            // Удаляем уведомление через 3 секунды
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => {
-                    document.body.removeChild(notification);
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
                 }, 300);
             }, 3000);
         }

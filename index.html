@@ -1039,13 +1039,6 @@
                 max-width: 400px;
             }
             
-            /* Центрирование последней карточки на мобильных */
-            .gameplay-grid:has(.gameplay-item:nth-child(4):last-child) {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            
             .social-grid {
                 grid-template-columns: 1fr;
             }
@@ -1388,7 +1381,8 @@
 
         // Конфигурация OAuth2 Discord
         const DISCORD_CLIENT_ID = '1307965035666079785';
-        const DISCORD_REDIRECT_URI = window.location.href.split('#')[0]; // Текущий URL без хеша
+        // Используем текущий URL как redirect URI
+        const DISCORD_REDIRECT_URI = window.location.origin + window.location.pathname;
         const DISCORD_SCOPE = 'identify';
 
         // URL для авторизации через Discord (Implicit Flow)
